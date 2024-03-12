@@ -74,7 +74,7 @@ def on_disconnect(client, userdata, rc):
     else:
         _LOGGER.error("Disconnection returned result: "+mqtt.connack_string(rc))
 
-def on_message(client, userdata, msg):
+def on_message_unsafe(client, userdata, msg):
     global boost_mode_time, ventmode_stop_supply_fan_time, ventmode_stop_exhaust_fan_time, bypass_on_time, bypass_off_time
     _LOGGER.info("from MQTT %s = %s" % (msg.topic , str(msg.payload.decode("utf-8"))))
     
@@ -350,6 +350,13 @@ def on_message(client, userdata, msg):
         else:
             _LOGGER.error("BYPASS: Ungültiger Wert wurde vom MQTT Broker empfangen - gültige Werte 0, 1, 2")
 
+def on_message(client, userdata, msg):
+    try:
+        on_message_unsafe(client, userdata, msg)
+    except Exception as error:
+        # handle the exception
+        _LOGGER.error("An exception occurred:" + str(error))
+
 def on_subscribe(client, userdata, mid, granted_qos):
     _LOGGER.info("Subscribed: "+str(mid)+" "+str(granted_qos))
 
@@ -442,7 +449,7 @@ def callback_sensor(var, value):
     
 
 def main():
-    global mqtt_topic, client, debug, loglevel, logfile, _LOGGER, search, unknown, boost_mode_time, ventmode_stop_supply_fan_time, ventmode_stop_exhaust_fan_time, bypass_on_time, comfoconnect
+    global mqtt_topic, client, debug, loglevel, logfile, _LOGGER, search, unknown, boost_mode_time, ventmode_stop_supply_fan_time, ventmode_stop_exhaust_fan_time, bypass_on_time, bypass_off_time, comfoconnect
     
     connected_flag = 0
     loglevel=logging.ERROR
